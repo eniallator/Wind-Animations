@@ -65,10 +65,30 @@ const getVelocity: VelocityFunc = (vec, context) => {
   }
 };
 
+function manageNumParticles(
+  particles: Vector<2>[],
+  desiredLength: number,
+  createParticle: () => Vector<2>
+): void {
+  if (particles.length !== desiredLength) {
+    particles.splice(
+      0,
+      Math.max(0, particles.length - desiredLength),
+      ...new Array(Math.max(0, desiredLength - particles.length))
+        .fill(undefined)
+        .map(createParticle)
+    );
+  }
+}
+
 function animationFrame(context: AppContextWithState<typeof config, State>) {
-  const { canvas, ctx, time, state } = context;
+  const { canvas, ctx, paramConfig, time, state } = context;
   ctx.fillStyle = "rgba(255,255,255,0.05)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  manageNumParticles(state.particles, paramConfig.getVal("num-particles"), () =>
+    Vector.create(canvas.width * Math.random(), canvas.height * Math.random())
+  );
 
   ctx.beginPath();
   for (const particle of state.particles) {
