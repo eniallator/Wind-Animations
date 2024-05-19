@@ -26,7 +26,7 @@ type VelocityFunc = (
   context: AppContextWithState<typeof config, State>
 ) => Vector<2>;
 
-const vortexCurve: VelocityFunc = (vec, { canvas, time }) => {
+const vortexCurve: VelocityFunc = (vec, { canvas, time, paramConfig }) => {
   const center = Vector.create(canvas.width / 2, canvas.height / 2);
   const diff = vec
     .copy()
@@ -36,21 +36,24 @@ const vortexCurve: VelocityFunc = (vec, { canvas, time }) => {
   const angle = diff.getAngle();
   const timeSoFar = time.now - time.animationStart;
   return Vector.create(
-    Math.cos(
-      diff.getMagnitude() / (2 * time.delta) +
-        (angle - Math.PI) -
-        timeSoFar / 0.5
-    ),
-    Math.sin(
-      diff.getMagnitude() / (2 * GOLDEN_RATIO * time.delta) +
-        (angle - Math.PI) -
-        timeSoFar / 0.5
-    )
+    2 *
+      paramConfig.getVal("speed") *
+      Math.cos(
+        diff.getMagnitude() / (2 * time.delta) +
+          (angle - Math.PI) -
+          timeSoFar / 0.5
+      ),
+    paramConfig.getVal("speed") *
+      Math.sin(
+        diff.getMagnitude() / (2 * GOLDEN_RATIO * time.delta) +
+          (angle - Math.PI) -
+          timeSoFar / 0.5
+      )
   );
 };
 
-const sweepingRightCurve: VelocityFunc = (vec, { time }) =>
-  Vector.create(100 * time.delta, 0).setAngle(
+const sweepingRightCurve: VelocityFunc = (vec, { time, paramConfig }) =>
+  Vector.create(500 * paramConfig.getVal("speed") * time.delta, 0).setAngle(
     Math.cos(vec.getSquaredMagnitude() / 1e6)
   );
 

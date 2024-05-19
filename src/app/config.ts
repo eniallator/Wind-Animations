@@ -1,6 +1,17 @@
-import { config, numberConfig, selectConfig } from "../configParser/create";
+import {
+  config,
+  numberConfig,
+  rangeConfig,
+  selectConfig,
+} from "../configParser/create";
 
 export default config(
+  rangeConfig({
+    id: "speed",
+    label: "Animation Speed",
+    default: 0.5,
+    attrs: { min: "0.1", max: "1", step: "0.01" },
+  }),
   numberConfig({
     id: "num-particles",
     label: "Number of Particles",
