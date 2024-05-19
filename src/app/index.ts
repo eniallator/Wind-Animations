@@ -6,6 +6,7 @@ import config from "./config";
 type State = { particles: Vector<2>[] };
 
 const STILL_THRESHOLD = 1e-2;
+const GOLDEN_RATIO = (1 + Math.sqrt(5)) / 2;
 
 function init({ canvas, paramConfig }: AppContext<typeof config>): State {
   return {
@@ -41,7 +42,7 @@ const vortexCurve: VelocityFunc = (vec, { canvas, time }) => {
         timeSoFar / 0.5
     ),
     Math.sin(
-      diff.getMagnitude() / (3 * time.delta) +
+      diff.getMagnitude() / (2 * GOLDEN_RATIO * time.delta) +
         (angle - Math.PI) -
         timeSoFar / 0.5
     )
