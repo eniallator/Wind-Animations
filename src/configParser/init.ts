@@ -11,6 +11,7 @@ import {
   FileConfig,
   InputConfig,
   OnUpdate,
+  SelectConfig,
   StateItem,
 } from "./types";
 
@@ -250,6 +251,11 @@ function initHtml<C extends ConfigPart<string>>(
         inp.setAttribute("id", config.id);
       }
       inp.className = "form-select";
+
+      inp.onchange = changeCallback(
+        config,
+        onUpdate as OnUpdate<SelectConfig<string>>
+      );
 
       config.options?.forEach(option => {
         const el = document.createElement("option");
