@@ -1,10 +1,3 @@
-class AnalysisError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "AnalysisError";
-  }
-}
-
 class AuditError extends Error {
   constructor(message: string) {
     super(message);
