@@ -7,7 +7,7 @@ export default config(
     default: 10000,
     attrs: {
       min: "0",
-      max: "1000000",
+      max: `${1e15}`,
     },
   }),
   selectConfig({
