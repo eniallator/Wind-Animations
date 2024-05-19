@@ -1,4 +1,4 @@
-import { config, numberConfig } from "../configParser/create";
+import { config, numberConfig, selectConfig } from "../configParser/create";
 
 export default config(
   numberConfig({
@@ -9,5 +9,11 @@ export default config(
       min: "0",
       max: "1000000",
     },
+  }),
+  selectConfig({
+    id: "curve",
+    label: "Curve",
+    default: "Sweeping Right",
+    options: ["Vortex", "Sweeping Right"],
   })
 );
