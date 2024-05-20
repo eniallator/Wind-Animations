@@ -12,6 +12,10 @@ export function isObject(value: unknown): value is Record<string, unknown> {
   return value != null && typeof value === "object" && !Array.isArray(value);
 }
 
+export function isBoolean(value: unknown): value is boolean {
+  return typeof value === "boolean";
+}
+
 export function isArrayOf<T>(guard: Guard<T>): Guard<Array<T>> {
   return (value): value is Array<T> =>
     Array.isArray(value) && value.every(guard);

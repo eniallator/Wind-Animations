@@ -28,13 +28,10 @@ type VelocityFunc = (
 
 const vortexCurve: VelocityFunc = (vec, { canvas, time, paramConfig }) => {
   const center = Vector.create(canvas.width / 2, canvas.height / 2);
-  const diff = vec
-    .copy()
-    .sub(center)
-    .divide(center)
-    .divide(center.x() / center.y());
+  const diff = vec.copy().sub(center).divide(center);
   const angle = diff.getAngle();
   const timeSoFar = time.now - time.animationStart;
+
   return Vector.create(
     2 *
       paramConfig.getVal("speed") *
