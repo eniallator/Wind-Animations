@@ -21,46 +21,46 @@ function init({ canvas, paramConfig }: AppContext<typeof config>): State {
   };
 }
 
+type CurveFunc = (vec: Vector<2>) => Vector<2>;
 type VelocityFunc = (
-  vec: Vector<2>,
   context: AppContextWithState<typeof config, State>
-) => Vector<2>;
+) => CurveFunc;
 
-const vortexCurve: VelocityFunc = (vec, { canvas, time, paramConfig }) => {
+const vortexCurve: VelocityFunc = ({ canvas, time, paramConfig }) => {
   const center = Vector.create(canvas.width / 2, canvas.height / 2);
-  const diff = vec.copy().sub(center).divide(center);
-  const angle = diff.getAngle();
   const timeSoFar = time.now - time.animationStart;
 
-  return Vector.create(
-    2 *
+  return vec => {
+    const diff = vec.copy().sub(center).divide(center);
+    const angle = diff.getAngle();
+
+    const c = angle - Math.PI - timeSoFar / 0.5 - Math.floor(timeSoFar / 8);
+
+    return Vector.create(
+      2 *
+        paramConfig.getVal("speed") *
+        Math.cos(diff.getMagnitude() / (2 * time.delta) + c),
       paramConfig.getVal("speed") *
-      Math.cos(
-        diff.getMagnitude() / (2 * time.delta) +
-          (angle - Math.PI) -
-          timeSoFar / 0.5
-      ),
-    paramConfig.getVal("speed") *
-      Math.sin(
-        diff.getMagnitude() / (2 * GOLDEN_RATIO * time.delta) +
-          (angle - Math.PI) -
-          timeSoFar / 0.5
-      )
-  );
+        Math.sin(diff.getMagnitude() / (2 * GOLDEN_RATIO * time.delta) + c)
+    );
+  };
 };
 
-const sweepingRightCurve: VelocityFunc = (vec, { time, paramConfig }) =>
-  Vector.create(500 * paramConfig.getVal("speed") * time.delta, 0).setAngle(
-    Math.cos(vec.getSquaredMagnitude() / 1e6)
-  );
+const sweepingRightCurve: VelocityFunc =
+  ({ time, paramConfig }) =>
+  vec =>
+    Vector.create(
+      500 * (paramConfig.getVal("speed") + 0.1) * time.delta,
+      0
+    ).setAngle(Math.cos(vec.getSquaredMagnitude() / 1e6));
 
-const getVelocity: VelocityFunc = (vec, context) => {
+const getVelocity: VelocityFunc = context => {
   const curve = context.paramConfig.getVal("curve");
   switch (curve) {
     case "Vortex":
-      return vortexCurve(vec, context);
+      return vortexCurve(context);
     case "Sweeping Right":
-      return sweepingRightCurve(vec, context);
+      return sweepingRightCurve(context);
     default:
       return checkExhausted(curve);
   }
@@ -90,10 +90,11 @@ function animationFrame(context: AppContextWithState<typeof config, State>) {
   manageNumParticles(state.particles, paramConfig.getVal("num-particles"), () =>
     Vector.create(canvas.width * Math.random(), canvas.height * Math.random())
   );
+  const curve = getVelocity(context);
 
   ctx.beginPath();
   for (const particle of state.particles) {
-    const vel = getVelocity(particle, context);
+    const vel = curve(particle);
     if (
       vel.getSquaredMagnitude() < STILL_THRESHOLD * time.delta ||
       particle.x() < 0 ||

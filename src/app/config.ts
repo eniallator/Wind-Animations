@@ -10,7 +10,7 @@ export default config(
     id: "speed",
     label: "Animation Speed",
     default: 0.5,
-    attrs: { min: "0.1", max: "1", step: "0.01" },
+    attrs: { min: "0", max: "1", step: "0.01" },
   }),
   numberConfig({
     id: "num-particles",
