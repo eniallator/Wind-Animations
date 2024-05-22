@@ -11,15 +11,17 @@ const vortex: VelocityFunc = ({ canvas, time, paramConfig }) => {
   const steppedTime = 2 * timeSoFar - Math.floor(timeSoFar / 8);
 
   const multiplier =
-    ((0.1 + paramConfig.getVal("speed") / (1 / 0.9)) *
+    ((paramConfig.getVal("speed") + 0.05) *
       Math.min(canvas.width, canvas.height)) /
-    1000;
+    800;
   return vec => {
     const diff = vec.copy().sub(center).divide(center);
     const c = diff.getAngle() - steppedTime;
 
     return Vector.create(
-      2 * multiplier * Math.cos(diff.getMagnitude() / (2 * time.delta) + c),
+      GOLDEN_RATIO *
+        multiplier *
+        Math.cos(diff.getMagnitude() / (2 * time.delta) + c),
       multiplier *
         Math.sin(diff.getMagnitude() / (2 * GOLDEN_RATIO * time.delta) + c)
     );
