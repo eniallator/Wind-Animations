@@ -46,6 +46,18 @@ const zigZag: VelocityFunc = ({ time, canvas, paramConfig }) => {
     ).multiply(paramConfig.getVal("speed") * time.delta * 300);
 };
 
+const magnet: VelocityFunc = ({ time, canvas }) => {
+  const center = Vector.create(canvas.width / 2, canvas.height / 2);
+
+  return vec => {
+    const angle = (vec.copy().sub(center).getAngle() + Math.PI / 2) % Math.PI;
+
+    return Vector.create(time.delta * 100, 0).setAngle(
+      angle + (angle % Math.PI)
+    );
+  };
+};
+
 export const getVelocity: VelocityFunc = context => {
   const curve = context.paramConfig.getVal("curve");
 
@@ -58,6 +70,9 @@ export const getVelocity: VelocityFunc = context => {
 
     case "Zig Zag":
       return zigZag(context);
+
+    case "Magnet":
+      return magnet(context);
 
     default:
       return checkExhausted(curve);
