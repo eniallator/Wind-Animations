@@ -2,7 +2,7 @@ import Vector from "../core/Vector";
 import { AppContext, AppContextWithState, appMethods } from "../core/types";
 import config from "./config";
 import { State } from "./types";
-import { getVelocity } from "./velocity";
+import { getWindFn } from "./velocity";
 
 const STILL_THRESHOLD = 1e-2;
 
@@ -43,7 +43,7 @@ function animationFrame(context: AppContextWithState<typeof config, State>) {
   manageNumParticles(state.particles, paramConfig.getVal("num-particles"), () =>
     Vector.create(canvas.width * Math.random(), canvas.height * Math.random())
   );
-  const curve = getVelocity(context);
+  const { curve } = getWindFn(context);
 
   ctx.beginPath();
   for (const particle of state.particles) {

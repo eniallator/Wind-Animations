@@ -6,6 +6,6 @@ export type State = { particles: Vector<2>[] };
 
 export type CurveFunc = (vec: Vector<2>) => Vector<2>;
 
-export type VelocityFunc = (
-  context: AppContextWithState<typeof config, State>
-) => CurveFunc;
+export type WindFunc = (context: AppContextWithState<typeof config, State>) => {
+  curve: CurveFunc;
+};
