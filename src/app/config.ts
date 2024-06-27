@@ -1,4 +1,5 @@
 import {
+  checkboxConfig,
   config,
   numberConfig,
   rangeConfig,
@@ -6,6 +7,11 @@ import {
 } from "../configParser/create";
 
 export default config(
+  checkboxConfig({
+    id: "use-color",
+    label: "Use Colour",
+    default: true,
+  }),
   rangeConfig({
     id: "speed",
     label: "Animation Speed",

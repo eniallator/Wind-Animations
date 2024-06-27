@@ -1,4 +1,5 @@
 import Vector from "../core/Vector";
+import Monad from "../core/monad";
 import { checkExhausted } from "../core/utils";
 import { WindFunc } from "./types";
 
@@ -14,7 +15,10 @@ const vortex: WindFunc = ({ canvas, time, paramConfig }) => {
     ((paramConfig.getVal("speed") + 0.05) *
       Math.min(canvas.width, canvas.height)) /
     800;
+
   return {
+    color: vel =>
+      `hsl(${Math.floor((vel.getAngle() / (2 * Math.PI)) * 360)} 100% 50%)`,
     curve: vec => {
       const diff = vec.copy().sub(center).divide(center);
       const c = diff.getAngle() - steppedTime;
@@ -37,6 +41,8 @@ const sweepingRight: WindFunc = ({ time, paramConfig, canvas }) => {
   );
   const divisor = (Math.min(canvas.width, canvas.height) * 1.2) ** 2 / 2;
   return {
+    color: (vel, particle) =>
+      `hsl(${((particle.x() / canvas.width) * 360 + Math.floor((vel.getAngle() / (2 * Math.PI)) * 360)) % 360} 100% 50%)`,
     curve: vec =>
       sizeVec.copy().setAngle(Math.cos(vec.getSquaredMagnitude() / divisor)),
   };
@@ -44,6 +50,8 @@ const sweepingRight: WindFunc = ({ time, paramConfig, canvas }) => {
 
 const zigZag: WindFunc = ({ time, canvas, paramConfig }) => {
   return {
+    color: (vel, particle) =>
+      `hsl(${((particle.x() / canvas.width) * 360 + Math.floor((vel.getAngle() / (2 * Math.PI)) * 360)) % 360} 100% 50%)`,
     curve: vec =>
       Vector.create(
         1,
@@ -56,14 +64,17 @@ const magnet: WindFunc = ({ time, canvas, paramConfig }) => {
   const center = Vector.create(canvas.width / 2, canvas.height / 2);
 
   return {
-    curve: vec => {
-      const angle = (vec.copy().sub(center).getAngle() + Math.PI / 2) % Math.PI;
-
-      return Vector.create(
-        (paramConfig.getVal("speed") + 0.05) * time.delta * 200,
-        0
-      ).setAngle(angle + (angle % Math.PI));
-    },
+    color: (vel, particle) =>
+      `hsl(${((particle.y() / canvas.height) * 1080 + Math.floor((vel.getAngle() / (2 * Math.PI)) * 360)) % 360} 100% 50%)`,
+    curve: vec =>
+      Monad.from((vec.copy().sub(center).getAngle() + Math.PI / 2) % Math.PI)
+        .map(angle =>
+          Vector.create(
+            (paramConfig.getVal("speed") + 0.05) * time.delta * 200,
+            0
+          ).setAngle(angle + (angle % Math.PI))
+        )
+        .value(),
   };
 };
 

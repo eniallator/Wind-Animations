@@ -43,11 +43,16 @@ function animationFrame(context: AppContextWithState<typeof config, State>) {
   manageNumParticles(state.particles, paramConfig.getVal("num-particles"), () =>
     Vector.create(canvas.width * Math.random(), canvas.height * Math.random())
   );
-  const { curve } = getWindFn(context);
+  const { curve, color } = getWindFn(context);
+  const useColour = paramConfig.getVal("use-color") && color != null;
 
-  ctx.beginPath();
+  if (!useColour) {
+    ctx.strokeStyle = "black";
+    ctx.beginPath();
+  }
   for (const particle of state.particles) {
     const vel = curve(particle);
+
     if (
       vel.getSquaredMagnitude() < STILL_THRESHOLD * time.delta ||
       particle.x() < 0 ||
@@ -60,12 +65,17 @@ function animationFrame(context: AppContextWithState<typeof config, State>) {
         canvas.height * Math.random()
       );
     } else {
+      if (useColour) {
+        ctx.strokeStyle = color(vel, particle);
+        ctx.beginPath();
+      }
       ctx.moveTo(...particle.toArray());
       particle.add(vel);
       ctx.lineTo(...particle.toArray());
+      if (useColour) ctx.stroke();
     }
   }
-  ctx.stroke();
+  if (!useColour) ctx.stroke();
 }
 
 export default appMethods.stateful({
