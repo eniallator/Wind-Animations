@@ -31,6 +31,6 @@ export default config(
     id: "curve",
     label: "Curve",
     default: "Sweeping Right",
-    options: ["Vortex", "Sweeping Right", "Zig Zag", "Magnet"],
+    options: ["Vortex", "Sweeping Right", "Zig Zag", "Magnet", "Swirls"],
   })
 );

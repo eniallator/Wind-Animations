@@ -78,6 +78,28 @@ const magnet: WindFunc = ({ time, canvas, paramConfig }) => {
   };
 };
 
+const swirls: WindFunc = ({ time, canvas, paramConfig }) => {
+  const dimensions = Vector.create(canvas.width / 2, canvas.height / 2);
+  const swirlSize = dimensions.getMin() / 2;
+  const swirlsPerDim = dimensions.map(n => Math.floor(n / swirlSize));
+  const maxIndex = swirlsPerDim.x() * swirlsPerDim.y();
+  return {
+    color: (_vel, particle) => {
+      const swirlIndices = particle.map(n => Math.floor(n / swirlSize));
+      return `hsl(${((swirlIndices.x() + swirlIndices.y() * swirlsPerDim.x()) / maxIndex) * 180} 100% 50%)`;
+    },
+    curve: vec =>
+      Vector.create(
+        0,
+        (paramConfig.getVal("speed") + 0.05) * time.delta * 200
+      ).setAngle(
+        vec.map(n => (n % swirlSize) - swirlSize / 2).getAngle() +
+          (vec.map(n => Math.floor(n / swirlSize)).sum() % 2 === 1 ? 1 : -1) *
+            (Math.PI / 2)
+      ),
+  };
+};
+
 export const getWindFn: WindFunc = context => {
   const curve = context.paramConfig.getVal("curve");
 
@@ -93,6 +115,9 @@ export const getWindFn: WindFunc = context => {
 
     case "Magnet":
       return magnet(context);
+
+    case "Swirls":
+      return swirls(context);
 
     default:
       return checkExhausted(curve);
