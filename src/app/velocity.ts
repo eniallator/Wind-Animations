@@ -1,6 +1,6 @@
 import Vector from "../core/Vector";
 import Monad from "../core/monad";
-import { checkExhausted } from "../core/utils";
+import { checkExhausted, posMod } from "../core/utils";
 import { WindFunc } from "./types";
 
 const GOLDEN_RATIO = (1 + Math.sqrt(5)) / 2;
@@ -104,10 +104,23 @@ const swirls: WindFunc = ({ time, canvas, paramConfig }) => {
 const eyes: WindFunc = ({ time, canvas, paramConfig }) => {
   const dimensions = Vector.create(canvas.width, canvas.height);
   const center = dimensions.copy().divide(2);
+  const blendSize = 3;
 
   return {
+    color: (vel, particle) =>
+      `hsl(${posMod(Math.floor((particle.x() < center.x() ? vel.getAngle() / (2 * Math.PI) : 0.5 - vel.getAngle() / (2 * Math.PI)) * 360), 360)} 100% 50%)`,
     curve: vec =>
-      Vector.create(vec.y() < center.y() !== vec.x() < center.x() ? -1 : 1, -1)
+      Vector.create(vec.x() < center.x() ? 1 : -1, -1)
+        .lerp(
+          Vector.create(vec.x() < center.x() ? -1 : 1, -1),
+          Math.max(
+            0,
+            Math.min(
+              1,
+              (vec.y() / center.y() / 2) * blendSize - (blendSize - 1) / 2
+            )
+          )
+        )
         .normalise()
         .lerp(Vector.DOWN, (1 - Math.abs(vec.x() / center.x() - 1)) ** 2)
         .multiply((paramConfig.getVal("speed") + 0.05) * time.delta * 200),

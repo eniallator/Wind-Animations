@@ -67,3 +67,7 @@ export function tuple<const T extends unknown[]>(...tuple: T): T {
 export function raise<T = never>(err: Error): T {
   throw err;
 }
+
+export function posMod(a: number, b: number): number {
+  return ((a % b) + b) % b;
+}
