@@ -1,5 +1,6 @@
 import {
   checkboxConfig,
+  colorConfig,
   config,
   numberConfig,
   rangeConfig,
@@ -26,6 +27,11 @@ export default config(
       min: "0",
       max: `${1e15}`,
     },
+  }),
+  colorConfig({
+    id: "background",
+    label: "Background Colour",
+    default: "FFFFFF",
   }),
   selectConfig({
     id: "curve",

@@ -65,7 +65,7 @@ const magnet: WindFunc = ({ time, canvas, paramConfig }) => {
 
   return {
     color: (vel, particle) =>
-      `hsl(${((particle.y() / canvas.height) * 1080 + Math.floor((vel.getAngle() / (2 * Math.PI)) * 360)) % 360} 100% 50%)`,
+      `hsl(${((particle.y() / canvas.height) * 360 + Math.floor((vel.getAngle() / (2 * Math.PI)) * 360)) % 360} 100% 50%)`,
     curve: vec =>
       Monad.from((vec.copy().sub(center).getAngle() + Math.PI / 2) % Math.PI)
         .map(angle =>

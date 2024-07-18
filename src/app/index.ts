@@ -6,7 +6,9 @@ import { getWindFn } from "./velocity";
 
 const STILL_THRESHOLD = 1e-2;
 
-function init({ canvas, paramConfig }: AppContext<typeof config>): State {
+function init({ canvas, ctx, paramConfig }: AppContext<typeof config>): State {
+  ctx.fillStyle = `#${paramConfig.getVal("background")}`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
   return {
     particles: new Array(paramConfig.getVal("num-particles"))
       .fill(undefined)
@@ -37,7 +39,7 @@ function manageNumParticles(
 
 function animationFrame(context: AppContextWithState<typeof config, State>) {
   const { canvas, ctx, paramConfig, time, state } = context;
-  ctx.fillStyle = "rgba(255,255,255,0.05)";
+  ctx.fillStyle = `#${paramConfig.getVal("background")}0C`;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   manageNumParticles(state.particles, paramConfig.getVal("num-particles"), () =>
@@ -79,7 +81,17 @@ function animationFrame(context: AppContextWithState<typeof config, State>) {
 }
 
 export default appMethods.stateful({
-  init,
+  init: context => {
+    const { canvas, ctx, paramConfig } = context;
+    paramConfig.addListener(
+      state => {
+        ctx.fillStyle = `#${state.background}`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      },
+      ["background"]
+    );
+    return init(context);
+  },
   onResize: (_evt, appContext) => init(appContext),
   animationFrame,
 });
