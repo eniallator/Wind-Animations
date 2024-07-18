@@ -33,6 +33,13 @@ export default config(
     label: "Background Colour",
     default: "FFFFFF",
   }),
+  rangeConfig({
+    id: "draw-opacity",
+    label: "Draw Opacity",
+    tooltip: "Affects how long the colour trails are",
+    default: 13,
+    attrs: { min: "0", max: "255" },
+  }),
   selectConfig({
     id: "curve",
     label: "Curve",

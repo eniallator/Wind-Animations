@@ -39,7 +39,12 @@ function manageNumParticles(
 
 function animationFrame(context: AppContextWithState<typeof config, State>) {
   const { canvas, ctx, paramConfig, time, state } = context;
-  ctx.fillStyle = `#${paramConfig.getVal("background")}0C`;
+
+  const drawOpacity = paramConfig
+    .getVal("draw-opacity")
+    .toString(16)
+    .padStart(2, "0");
+  ctx.fillStyle = `#${paramConfig.getVal("background")}${drawOpacity}`;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   manageNumParticles(state.particles, paramConfig.getVal("num-particles"), () =>
@@ -88,7 +93,7 @@ export default appMethods.stateful({
         ctx.fillStyle = `#${state.background}`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       },
-      ["background"]
+      ["background", "draw-opacity"]
     );
     return init(context);
   },
