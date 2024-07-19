@@ -15,20 +15,28 @@ main {
   --bg-secondary: #4b535c;
 }
 
-input:not([type="checkbox"]),
-select {
+select,
+textarea,
+input:not([type="checkbox"]) {
   border: 0;
   font: inherit;
   font-size: inherit;
   padding: 0 0.5rem;
   height: 1.75rem;
 }
+
+textarea,
 input:not([type="checkbox"]) {
   width: 11rem;
+  min-width: 11rem;
+  max-width: 11rem;
 }
+
 select,
 input[type="color"] {
   width: 12rem;
+  min-width: 12rem;
+  max-width: 12rem;
 }
 
 .wrap-text {
@@ -85,6 +93,7 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 .icon {
+  width: 1em;
   height: 1em;
 }
 
@@ -156,6 +165,7 @@ button.secondary:focus {
 canvas {
   width: 100%;
   height: 100%;
+  image-rendering: pixelated;
 }
 
 .config-item {
@@ -227,6 +237,8 @@ canvas {
 .collection input:not([type="checkbox"]),
 .collection select {
   width: 5rem;
+  min-width: 5rem;
+  max-width: 5rem;
   margin-left: 0;
 }
 .collection input[type="checkbox"] {
@@ -235,13 +247,13 @@ canvas {
 
 .collection-container {
   margin: 0 1rem;
-  max-width: calc(100% - 2rem);
-  overflow-x: auto;
   position: relative;
 }
 
 .collection-content {
+  max-width: calc(100%);
   width: fit-content;
+  overflow-x: auto;
 }
 
 .collection-actions {
@@ -322,11 +334,6 @@ dialog {
     margin-top: 1.5rem !important;
   }
 
-  .collection-actions {
-    position: sticky;
-    left: 0;
-  }
-
   .config-item {
     display: flex;
     flex-direction: column;
@@ -347,12 +354,6 @@ dialog {
   }
   .dialog-actions {
     font-size: 1.5rem;
-  }
-}
-
-@media (max-width: 305px) {
-  .collection-actions {
-    width: fit-content;
   }
 }
 
