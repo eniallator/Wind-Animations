@@ -71,22 +71,28 @@ function calcColor(colorMap: (readonly [string, number])[]) {
     ],
     [] as (readonly [string, number])[]
   );
+
   return (colorPercent: number): string =>
     findAndMap(percentWeights, ([color, weightPercent], i) => {
-      const prevRow =
-        percentWeights[posMod(i - 1, percentWeights.length)] ??
-        raise<[string, number]>(Error("Should never happen ..."));
-      const out =
-        colorPercent > weightPercent
-          ? null
-          : blendColors(
-              color,
-              prevRow[0],
-              i > 0
-                ? (colorPercent - prevRow[1]) / (weightPercent - prevRow[1])
-                : colorPercent / weightPercent
-            );
-      return out;
+      if (colorPercent <= weightPercent) {
+        const prevRow =
+          percentWeights[posMod(i - 1, percentWeights.length)] ??
+          raise<[string, number]>(Error("Should never happen ..."));
+        const nextRow =
+          percentWeights[(i + 1) % percentWeights.length] ??
+          raise<[string, number]>(Error("Should never happen ..."));
+
+        const blendPercent =
+          i > 0
+            ? (colorPercent - prevRow[1]) / (weightPercent - prevRow[1])
+            : colorPercent / weightPercent;
+
+        return blendPercent <= 0.5
+          ? blendColors(color, prevRow[0], blendPercent + 0.5)
+          : blendColors(nextRow[0], color, blendPercent - 0.5);
+      } else {
+        return null;
+      }
     }) ??
     colorMap[colorMap.length - 1]?.[0] ??
     raise<string>(Error("Should never happen ..."));
