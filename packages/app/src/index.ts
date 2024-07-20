@@ -3,6 +3,7 @@ import config from "./config";
 import { AppContext, AppContextWithState, appMethods } from "./lib/types";
 import { State } from "./types";
 import { getWindFn } from "./velocity";
+import { findAndMap, posMod, raise, tuple } from "@web-art/core";
 
 const STILL_THRESHOLD = 1e-2;
 
@@ -37,6 +38,64 @@ function manageNumParticles(
   }
 }
 
+function blendColors(a: string, b: string, percent: number): string {
+  const aChannels =
+    a.match(/[\da-f]{2}/gi) ??
+    raise<RegExpMatchArray>(new Error(`Invalid colour ${a}`));
+  const bChannels =
+    b.match(/[\da-f]{2}/gi) ??
+    raise<RegExpMatchArray>(new Error(`Invalid colour ${b}`));
+
+  return aChannels
+    .map((channel, i) =>
+      Math.floor(
+        percent * parseInt(channel, 16) +
+          (1 - percent) *
+            parseInt(
+              bChannels[i] ?? raise<string>(Error(`Invalid b colour ${b}`)),
+              16
+            )
+      )
+        .toString(16)
+        .padStart(2, "0")
+    )
+    .join("");
+}
+
+function calcColor(colorMap: (readonly [string, number])[]) {
+  const totalWeight = colorMap.reduce((acc, row) => acc + row[1], 0);
+  const percentWeights = colorMap.reduce(
+    (acc, [color, weight], i) => [
+      ...acc,
+      tuple(color, weight / totalWeight + (acc[i - 1]?.[1] ?? 0)),
+    ],
+    [] as (readonly [string, number])[]
+  );
+  return (colorPercent: number): string =>
+    findAndMap(percentWeights, ([color, weightPercent], i) => {
+      const prevRow =
+        percentWeights[posMod(i - 1, percentWeights.length)] ??
+        raise<[string, number]>(Error("Should never happen ..."));
+      const out =
+        colorPercent > weightPercent
+          ? null
+          : blendColors(
+              color,
+              prevRow[0],
+              i > 0
+                ? (colorPercent - prevRow[1]) / (weightPercent - prevRow[1])
+                : colorPercent / weightPercent
+            );
+      return out;
+    }) ??
+    colorMap[colorMap.length - 1]?.[0] ??
+    raise<string>(Error("Should never happen ..."));
+}
+
+function hueCycle(percent: number): string {
+  return `hsl(${percent * 360} 100% 50%)`;
+}
+
 function animationFrame(context: AppContextWithState<typeof config, State>) {
   const { canvas, ctx, paramConfig, time, state } = context;
 
@@ -51,10 +110,20 @@ function animationFrame(context: AppContextWithState<typeof config, State>) {
     Vector.create(canvas.width * Math.random(), canvas.height * Math.random())
   );
   const { curve, color } = getWindFn(context);
-  const useColour = paramConfig.getVal("use-color") && color != null;
+  const colorMap = paramConfig.getVal("color-map");
+  const colorMode = paramConfig.getVal("color-mode");
+  const isMultiColor =
+    color != null &&
+    (colorMode === "Hue Cycle" ||
+      (colorMode === "Custom Gradient" && colorMap.length > 1));
 
-  if (!useColour) {
-    ctx.strokeStyle = "black";
+  const colorFn = calcColor(colorMap);
+
+  if (!isMultiColor) {
+    ctx.strokeStyle =
+      colorMap[0]?.[0] != null && colorMode !== "Black"
+        ? `#${colorMap[0][0]}`
+        : "black";
     ctx.beginPath();
   }
   for (const particle of state.particles) {
@@ -72,17 +141,21 @@ function animationFrame(context: AppContextWithState<typeof config, State>) {
         canvas.height * Math.random()
       );
     } else {
-      if (useColour) {
-        ctx.strokeStyle = color(vel, particle);
+      if (isMultiColor) {
+        const colorPercent = color(vel, particle);
+        ctx.strokeStyle =
+          colorMode === "Custom Gradient"
+            ? `#${colorFn(colorPercent)}`
+            : hueCycle(colorPercent);
         ctx.beginPath();
       }
       ctx.moveTo(...particle.toArray());
       particle.add(vel);
       ctx.lineTo(...particle.toArray());
-      if (useColour) ctx.stroke();
+      if (isMultiColor) ctx.stroke();
     }
   }
-  if (!useColour) ctx.stroke();
+  if (!isMultiColor) ctx.stroke();
 }
 
 export default appMethods.stateful({

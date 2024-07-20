@@ -1,17 +1,18 @@
 import {
-  checkboxConfig,
   colorConfig,
   config,
+  configCollection,
   numberConfig,
   rangeConfig,
   selectConfig,
 } from "@web-art/config-parser";
 
 export default config(
-  checkboxConfig({
-    id: "use-color",
-    label: "Use Colour",
-    default: true,
+  selectConfig({
+    id: "color-mode",
+    label: "Colour Mode",
+    options: ["Hue Cycle", "Custom Gradient", "Black"],
+    default: "Custom Gradient",
   }),
   rangeConfig({
     id: "speed",
@@ -25,7 +26,7 @@ export default config(
     default: 10000,
     attrs: {
       min: "0",
-      max: `${1e15}`,
+      max: (1e15).toString(),
     },
   }),
   colorConfig({
@@ -51,6 +52,24 @@ export default config(
       "Magnet",
       "Swirls",
       "Eyes",
+    ],
+  }),
+  configCollection({
+    id: "color-map",
+    label: "Colour Map",
+    expandable: true,
+    fields: [
+      colorConfig({
+        id: "color-map-color",
+        label: "Colour",
+        default: "FFFFFF",
+      }),
+      numberConfig({ id: "color-map-weight", label: "Weight", default: 1 }),
+    ],
+    default: [
+      ["FF0000", 1],
+      ["00FF00", 1],
+      ["0000FF", 1],
     ],
   })
 );

@@ -16,8 +16,7 @@ const vortex: WindFunc = ({ canvas, time, paramConfig }) => {
     800;
 
   return {
-    color: vel =>
-      `hsl(${Math.floor((vel.getAngle() / (2 * Math.PI)) * 360)} 100% 50%)`,
+    color: vel => vel.getAngle() / (2 * Math.PI),
     curve: vec => {
       const diff = vec.copy().sub(center).divide(center);
       const c = diff.getAngle() - steppedTime;
@@ -41,7 +40,7 @@ const sweepingRight: WindFunc = ({ time, paramConfig, canvas }) => {
   const divisor = (Math.min(canvas.width, canvas.height) * 1.2) ** 2 / 2;
   return {
     color: (vel, particle) =>
-      `hsl(${((particle.x() / canvas.width) * 360 + Math.floor((vel.getAngle() / (2 * Math.PI)) * 360)) % 360} 100% 50%)`,
+      (particle.x() / canvas.width + vel.getAngle() / (2 * Math.PI)) % 1,
     curve: vec =>
       sizeVec.copy().setAngle(Math.cos(vec.getSquaredMagnitude() / divisor)),
   };
@@ -50,7 +49,7 @@ const sweepingRight: WindFunc = ({ time, paramConfig, canvas }) => {
 const zigZag: WindFunc = ({ time, canvas, paramConfig }) => {
   return {
     color: (vel, particle) =>
-      `hsl(${((particle.x() / canvas.width) * 360 + Math.floor((vel.getAngle() / (2 * Math.PI)) * 360)) % 360} 100% 50%)`,
+      (particle.x() / canvas.width + vel.getAngle() / (2 * Math.PI)) % 1,
     curve: vec =>
       Vector.create(
         1,
@@ -64,7 +63,7 @@ const magnet: WindFunc = ({ time, canvas, paramConfig }) => {
 
   return {
     color: (vel, particle) =>
-      `hsl(${((particle.y() / canvas.height) * 360 + Math.floor((vel.getAngle() / (2 * Math.PI)) * 360)) % 360} 100% 50%)`,
+      (particle.y() / canvas.height + vel.getAngle() / (2 * Math.PI)) % 1,
     curve: vec =>
       Monad.from((vec.copy().sub(center).getAngle() + Math.PI / 2) % Math.PI)
         .map(angle =>
@@ -86,7 +85,9 @@ const swirls: WindFunc = ({ time, canvas, paramConfig }) => {
   return {
     color: (_vel, particle) => {
       const swirlIndices = particle.map(n => Math.floor(n / swirlSize));
-      return `hsl(${((swirlIndices.x() + swirlIndices.y() * swirlsPerDim.x()) / maxIndex) * 180} 100% 50%)`;
+      return (
+        (swirlIndices.x() + swirlIndices.y() * swirlsPerDim.x()) / maxIndex / 2
+      );
     },
     curve: vec =>
       Vector.create(
@@ -107,7 +108,12 @@ const eyes: WindFunc = ({ time, canvas, paramConfig }) => {
 
   return {
     color: (vel, particle) =>
-      `hsl(${posMod(Math.floor((particle.x() < center.x() ? vel.getAngle() / (2 * Math.PI) : 0.5 - vel.getAngle() / (2 * Math.PI)) * 360), 360)} 100% 50%)`,
+      posMod(
+        particle.x() < center.x()
+          ? vel.getAngle() / (2 * Math.PI)
+          : 0.5 - vel.getAngle() / (2 * Math.PI),
+        1
+      ),
     curve: vec =>
       Vector.create(vec.x() < center.x() ? 1 : -1, -1)
         .lerp(
@@ -127,7 +133,8 @@ const eyes: WindFunc = ({ time, canvas, paramConfig }) => {
 };
 
 export const getWindFn: WindFunc = context => {
-  const curve = context.paramConfig.getVal("curve");
+  const { paramConfig } = context;
+  const curve = paramConfig.getVal("curve");
 
   switch (curve) {
     case "Vortex":
