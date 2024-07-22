@@ -2,21 +2,19 @@ import { findAndMap, posMod, raise, tuple } from "@web-art/core";
 
 function blendColors(a: string, b: string, percent: number): string {
   const aChannels =
-    a.match(/[\da-f]{2}/gi) ??
-    raise<RegExpMatchArray>(new Error(`Invalid colour ${a}`));
+    a.match(/[\da-f]{2}/gi)?.map(n => parseInt(n, 16)) ??
+    raise<number[]>(new Error(`Invalid colour ${a}`));
   const bChannels =
-    b.match(/[\da-f]{2}/gi) ??
-    raise<RegExpMatchArray>(new Error(`Invalid colour ${b}`));
+    b.match(/[\da-f]{2}/gi)?.map(n => parseInt(n, 16)) ??
+    raise<number[]>(new Error(`Invalid colour ${b}`));
 
   return aChannels
     .map((channel, i) =>
       Math.floor(
-        (1 - percent) * parseInt(channel, 16) +
-          percent *
-            parseInt(
-              bChannels[i] ?? raise<string>(Error(`Invalid b colour ${b}`)),
-              16
-            )
+        channel -
+          (channel -
+            (bChannels[i] ?? raise<number>(Error(`Invalid b colour ${b}`)))) *
+            percent
       )
         .toString(16)
         .padStart(2, "0")
