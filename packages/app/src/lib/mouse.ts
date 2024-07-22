@@ -1,12 +1,11 @@
+import { hasKey, isString } from "@web-art/core";
 import { Vector } from "@web-art/linear-algebra";
 
 function isMouseEvent(evt: unknown): evt is MouseEvent {
-  return (
-    evt != null &&
-    typeof evt === "object" &&
-    "type" in evt &&
-    typeof evt.type === "string" &&
-    evt.type.startsWith("mouse")
+  return hasKey(
+    evt,
+    "type",
+    (s): s is `mouse${string}` => isString(s) && s.startsWith("mouse")
   );
 }
 

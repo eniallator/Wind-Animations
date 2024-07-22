@@ -1,15 +1,16 @@
 import { Vector } from "@web-art/linear-algebra";
+import { calcColor } from "./color";
 import config from "./config";
 import { AppContext, AppContextWithState, appMethods } from "./lib/types";
 import { State } from "./types";
 import { getWindFn } from "./velocity";
-import { findAndMap, posMod, raise, tuple } from "@web-art/core";
 
 const STILL_THRESHOLD = 1e-2;
 
 function init({ canvas, ctx, paramConfig }: AppContext<typeof config>): State {
   ctx.fillStyle = `#${paramConfig.getVal("background")}`;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
   return {
     particles: new Array(paramConfig.getVal("num-particles"))
       .fill(undefined)
@@ -38,70 +39,6 @@ function manageNumParticles(
   }
 }
 
-function blendColors(a: string, b: string, percent: number): string {
-  const aChannels =
-    a.match(/[\da-f]{2}/gi) ??
-    raise<RegExpMatchArray>(new Error(`Invalid colour ${a}`));
-  const bChannels =
-    b.match(/[\da-f]{2}/gi) ??
-    raise<RegExpMatchArray>(new Error(`Invalid colour ${b}`));
-
-  return aChannels
-    .map((channel, i) =>
-      Math.floor(
-        percent * parseInt(channel, 16) +
-          (1 - percent) *
-            parseInt(
-              bChannels[i] ?? raise<string>(Error(`Invalid b colour ${b}`)),
-              16
-            )
-      )
-        .toString(16)
-        .padStart(2, "0")
-    )
-    .join("");
-}
-
-function calcColor(colorMap: (readonly [string, number])[]) {
-  const totalWeight = colorMap.reduce((acc, row) => acc + row[1], 0);
-  const percentWeights = colorMap.reduce(
-    (acc, [color, weight], i) => [
-      ...acc,
-      tuple(color, weight / totalWeight + (acc[i - 1]?.[1] ?? 0)),
-    ],
-    [] as (readonly [string, number])[]
-  );
-
-  return (colorPercent: number): string =>
-    findAndMap(percentWeights, ([color, weightPercent], i) => {
-      if (colorPercent <= weightPercent) {
-        const prevRow =
-          percentWeights[posMod(i - 1, percentWeights.length)] ??
-          raise<[string, number]>(Error("Should never happen ..."));
-        const nextRow =
-          percentWeights[(i + 1) % percentWeights.length] ??
-          raise<[string, number]>(Error("Should never happen ..."));
-
-        const blendPercent =
-          i > 0
-            ? (colorPercent - prevRow[1]) / (weightPercent - prevRow[1])
-            : colorPercent / weightPercent;
-
-        return blendPercent <= 0.5
-          ? blendColors(color, prevRow[0], blendPercent + 0.5)
-          : blendColors(nextRow[0], color, blendPercent - 0.5);
-      } else {
-        return null;
-      }
-    }) ??
-    colorMap[colorMap.length - 1]?.[0] ??
-    raise<string>(Error("Should never happen ..."));
-}
-
-function hueCycle(percent: number): string {
-  return `hsl(${percent * 360} 100% 50%)`;
-}
-
 function animationFrame(context: AppContextWithState<typeof config, State>) {
   const { canvas, ctx, paramConfig, time, state } = context;
 
@@ -115,6 +52,7 @@ function animationFrame(context: AppContextWithState<typeof config, State>) {
   manageNumParticles(state.particles, paramConfig.getVal("num-particles"), () =>
     Vector.create(canvas.width * Math.random(), canvas.height * Math.random())
   );
+
   const { curve, color } = getWindFn(context);
   const colorMap = paramConfig.getVal("color-map");
   const colorMode = paramConfig.getVal("color-mode");
@@ -127,11 +65,12 @@ function animationFrame(context: AppContextWithState<typeof config, State>) {
 
   if (!isMultiColor) {
     ctx.strokeStyle =
-      colorMap[0]?.[0] != null && colorMode !== "Black"
+      colorMode !== "Black" && colorMap[0]?.[0] != null
         ? `#${colorMap[0][0]}`
         : "black";
     ctx.beginPath();
   }
+
   for (const particle of state.particles) {
     const vel = curve(particle);
 
@@ -152,12 +91,14 @@ function animationFrame(context: AppContextWithState<typeof config, State>) {
         ctx.strokeStyle =
           colorMode === "Custom Gradient"
             ? `#${colorFn(colorPercent)}`
-            : hueCycle(colorPercent);
+            : `hsl(${colorPercent * 360} 100% 50%)`;
         ctx.beginPath();
       }
+
       ctx.moveTo(...particle.toArray());
       particle.add(vel);
       ctx.lineTo(...particle.toArray());
+
       if (isMultiColor) ctx.stroke();
     }
   }
@@ -167,6 +108,7 @@ function animationFrame(context: AppContextWithState<typeof config, State>) {
 export default appMethods.stateful({
   init: context => {
     const { canvas, ctx, paramConfig } = context;
+
     paramConfig.addListener(
       state => {
         ctx.fillStyle = `#${state.background}`;
@@ -174,6 +116,7 @@ export default appMethods.stateful({
       },
       ["background", "draw-opacity"]
     );
+
     return init(context);
   },
   onResize: (_evt, appContext) => init(appContext),
