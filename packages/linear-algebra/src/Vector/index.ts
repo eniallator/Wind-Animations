@@ -659,7 +659,7 @@ export class Vector<const N extends number | undefined = undefined> {
   inBounds(dimensions: Vector<N>, positions?: Vector<N>): boolean {
     return toAnyComponents(this.components).every(
       (n, i) =>
-        (positions == null || n > positions.valueOf(i)) &&
+        n > (positions?.valueOf(i) ?? 0) &&
         n - (positions?.valueOf(i) ?? 0) < dimensions.valueOf(i)
     );
   }
