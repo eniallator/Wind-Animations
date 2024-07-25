@@ -133,12 +133,12 @@ const curvedStripes: WindFunc = ({ time, paramConfig }) => {
   const vecSize = (paramConfig.getVal("speed") + 0.05) * time.delta * 200;
 
   return {
-    color: vel => vel.getAngle() / (2 * Math.PI),
+    color: (_, particle) =>
+      Math.abs(Math.sin((particle.x() / 35 + Math.sin(particle.y() / 35)) / 6)),
     curve: vec =>
-      Vector.create(
-        Math.cos(vec.y() / 35),
-        Math.sign(Math.cos(vec.x() / 30))
-      ).setMagnitude(vecSize),
+      Vector.create(Math.cos(vec.y() / 35), -1)
+        .multiply(Math.cos(vec.x() / 35 + Math.sin(vec.y() / 35)))
+        .setMagnitude(vecSize),
   };
 };
 
