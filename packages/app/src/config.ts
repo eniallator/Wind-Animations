@@ -52,6 +52,7 @@ export default config(
       "Magnet",
       "Swirls",
       "Eyes",
+      "Curved Stripes",
     ],
   }),
   configCollection({
@@ -64,7 +65,12 @@ export default config(
         label: "Colour",
         default: "FFFFFF",
       }),
-      numberConfig({ id: "color-map-weight", label: "Weight", default: 1 }),
+      numberConfig({
+        id: "color-map-weight",
+        label: "Weight",
+        default: 1,
+        attrs: { min: "0.1", step: "0.1" },
+      }),
     ],
     default: [
       ["FF0000", 1],

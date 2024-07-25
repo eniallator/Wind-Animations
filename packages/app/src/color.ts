@@ -29,30 +29,28 @@ export function calcColor(colorMap: (readonly [string, number])[]) {
       ...acc,
       tuple(color, weight / totalWeight + (acc[i - 1]?.[1] ?? 0)),
     ],
-    [] as (readonly [string, number])[]
+    [] as typeof colorMap
   );
 
   return (colorPercent: number): string =>
     findAndMap(percentWeights, ([color, weightPercent], i) => {
-      if (colorPercent <= weightPercent) {
-        const prevRow =
-          percentWeights[posMod(i - 1, percentWeights.length)] ??
-          raise<[string, number]>(Error("Should never happen ..."));
-        const nextRow =
-          percentWeights[(i + 1) % percentWeights.length] ??
-          raise<[string, number]>(Error("Should never happen ..."));
+      if (colorPercent > weightPercent) return null;
 
-        const blendPercent =
-          i > 0
-            ? (colorPercent - prevRow[1]) / (weightPercent - prevRow[1])
-            : colorPercent / weightPercent;
+      const prevRow =
+        percentWeights[posMod(i - 1, percentWeights.length)] ??
+        raise<[string, number]>(Error("Should never happen ..."));
+      const nextRow =
+        percentWeights[(i + 1) % percentWeights.length] ??
+        raise<[string, number]>(Error("Should never happen ..."));
 
-        return blendPercent <= 0.5
-          ? blendColors(prevRow[0], color, blendPercent + 0.5)
-          : blendColors(color, nextRow[0], blendPercent - 0.5);
-      } else {
-        return null;
-      }
+      const blendPercent =
+        i > 0
+          ? (colorPercent - prevRow[1]) / (weightPercent - prevRow[1])
+          : colorPercent / weightPercent;
+
+      return blendPercent <= 0.5
+        ? blendColors(prevRow[0], color, blendPercent + 0.5)
+        : blendColors(color, nextRow[0], blendPercent - 0.5);
     }) ??
     colorMap[colorMap.length - 1]?.[0] ??
     raise<string>(Error("Should never happen ..."));

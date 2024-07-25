@@ -650,6 +650,20 @@ export class Vector<const N extends number | undefined = undefined> {
     );
   }
 
+  /** Checks if this vector is within the given bounds
+   *
+   * @param dimensions Dimensions of the bounds
+   * @param positions Starting positions of the bounds. Defaults to zero
+   * @returns if this vector is within the given bounds
+   */
+  inBounds(dimensions: Vector<N>, positions?: Vector<N>): boolean {
+    return toAnyComponents(this.components).every(
+      (n, i) =>
+        (positions == null || n > positions.valueOf(i)) &&
+        n - (positions?.valueOf(i) ?? 0) < dimensions.valueOf(i)
+    );
+  }
+
   /**
    * Converts this vector to a string in the format: "VectorND[component1, component2, ...]"
    * @param {number} fractionDigits optional precision to format the components to

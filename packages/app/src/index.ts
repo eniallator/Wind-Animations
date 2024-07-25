@@ -42,6 +42,8 @@ function manageNumParticles(
 function animationFrame(context: AppContextWithState<typeof config, State>) {
   const { canvas, ctx, paramConfig, time, state } = context;
 
+  const dimensions = Vector.create(canvas.width, canvas.height);
+
   const drawOpacity = paramConfig
     .getVal("draw-opacity")
     .toString(16)
@@ -50,7 +52,7 @@ function animationFrame(context: AppContextWithState<typeof config, State>) {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   manageNumParticles(state.particles, paramConfig.getVal("num-particles"), () =>
-    Vector.create(canvas.width * Math.random(), canvas.height * Math.random())
+    dimensions.map(n => n * Math.random())
   );
 
   const { curve, color } = getWindFn(context);
@@ -76,15 +78,9 @@ function animationFrame(context: AppContextWithState<typeof config, State>) {
 
     if (
       vel.getSquaredMagnitude() < STILL_THRESHOLD * time.delta ||
-      particle.x() < 0 ||
-      particle.x() > canvas.width ||
-      particle.y() < 0 ||
-      particle.y() > canvas.height
+      !particle.inBounds(dimensions)
     ) {
-      particle.setHead(
-        canvas.width * Math.random(),
-        canvas.height * Math.random()
-      );
+      particle.setHead(dimensions.map(n => n * Math.random()));
     } else {
       if (isMultiColor) {
         const colorPercent = color(vel, particle);
