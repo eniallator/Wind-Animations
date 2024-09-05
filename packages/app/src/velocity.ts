@@ -36,11 +36,14 @@ const sweepingRight: WindFunc = ({ time, paramConfig, canvas }) => {
     0
   );
   const divisor = (Math.min(canvas.width, canvas.height) * 1.2) ** 2 / 2;
+  const offset = ((time.now - time.animationStart) * 2 * Math.PI) / 60;
   return {
     color: (vel, particle) =>
       (particle.x() / canvas.width + vel.getAngle() / (2 * Math.PI)) % 1,
     curve: vec =>
-      sizeVec.copy().setAngle(Math.cos(vec.getSquaredMagnitude() / divisor)),
+      sizeVec
+        .copy()
+        .setAngle(Math.cos(vec.getSquaredMagnitude() / divisor + offset)),
   };
 };
 
