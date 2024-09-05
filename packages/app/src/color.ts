@@ -13,7 +13,8 @@ function blendColors(a: string, b: string, percent: number): string {
       Math.floor(
         channel -
           (channel -
-            (bChannels[i] ?? raise<number>(Error(`Invalid b colour ${b}`)))) *
+            (bChannels[i] ??
+              raise<number>(new Error(`Invalid b colour ${b}`)))) *
             percent
       )
         .toString(16)
@@ -38,10 +39,10 @@ export function calcColor(colorMap: (readonly [string, number])[]) {
 
       const prevRow =
         percentWeights[posMod(i - 1, percentWeights.length)] ??
-        raise<[string, number]>(Error("Should never happen ..."));
+        raise<[string, number]>(new Error("Should never happen ..."));
       const nextRow =
         percentWeights[(i + 1) % percentWeights.length] ??
-        raise<[string, number]>(Error("Should never happen ..."));
+        raise<[string, number]>(new Error("Should never happen ..."));
 
       const blendPercent =
         i > 0
@@ -53,5 +54,5 @@ export function calcColor(colorMap: (readonly [string, number])[]) {
         : blendColors(color, nextRow[0], blendPercent - 0.5);
     }) ??
     colorMap[colorMap.length - 1]?.[0] ??
-    raise<string>(Error("Should never happen ..."));
+    raise<string>(new Error("Should never happen ..."));
 }

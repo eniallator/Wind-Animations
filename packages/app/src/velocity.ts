@@ -76,7 +76,7 @@ const magnet: WindFunc = ({ time, canvas, paramConfig }) => {
 const swirls: WindFunc = ({ time, canvas, paramConfig }) => {
   const dimensions = Vector.create(canvas.width / 2, canvas.height / 2);
   const swirlSize = (dimensions.getMin() * 2) / 4;
-  const swirlsPerDim = dimensions.map(n => Math.floor(n / swirlSize));
+  const swirlsPerDim = dimensions.map(n => Math.ceil((2 * n) / swirlSize));
   const maxIndex = swirlsPerDim.x() * swirlsPerDim.y();
   const sizeVec = Vector.create(
     (paramConfig.getVal("speed") + 0.05) * time.delta * 200,
@@ -86,7 +86,7 @@ const swirls: WindFunc = ({ time, canvas, paramConfig }) => {
   return {
     color: (_vel, particle) =>
       Monad.from(particle.map(n => Math.floor(n / swirlSize)))
-        .map(grid => (2 * (grid.x() + grid.y() * swirlsPerDim.x())) / maxIndex)
+        .map(grid => (grid.x() + grid.y() * swirlsPerDim.x()) / maxIndex)
         .get(),
     curve: vec =>
       sizeVec
