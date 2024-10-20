@@ -53,6 +53,7 @@ export default config(
       "Swirls",
       "Eyes",
       "Curved Stripes",
+      "Attractor Repulsers",
     ],
   }),
   configCollection({

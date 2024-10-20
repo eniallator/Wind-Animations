@@ -48,6 +48,8 @@ const sweepingRight: WindFunc = ({ time, paramConfig, canvas }) => {
 };
 
 const zigZag: WindFunc = ({ time, canvas, paramConfig }) => {
+  const speed = paramConfig.getVal("speed") * time.delta * 300;
+
   return {
     color: (vel, particle) =>
       (particle.x() / canvas.width + vel.getAngle() / (2 * Math.PI)) % 1,
@@ -55,7 +57,7 @@ const zigZag: WindFunc = ({ time, canvas, paramConfig }) => {
       Vector.create(
         1,
         2 * (Math.round(((10 * vec.x()) / canvas.width) % 1) - 0.5)
-      ).multiply(paramConfig.getVal("speed") * time.delta * 300),
+      ).multiply(speed),
   };
 };
 
@@ -145,6 +147,39 @@ const curvedStripes: WindFunc = ({ time, paramConfig }) => {
   };
 };
 
+// const blobbyBois = new Array(2).fill(undefined).map(() => ({
+//   pos: Vector.randomNormalised(2).add(1).divide(2),
+//   dir: Math.sign(Math.random() - 0.5),
+// }));
+
+const points = new Array(4).fill(undefined).map(() => ({
+  pos: Vector.create(Math.random(), Math.random()),
+  dir: Math.sign(Math.random() - 0.25),
+}));
+
+const attractorRepulsers: WindFunc = ({ time, canvas, paramConfig }) => {
+  const dimensions = Vector.create(canvas.width, canvas.height);
+  const dimensionsNorm = dimensions.getNorm();
+  const vecSize = (paramConfig.getVal("speed") + 0.05) * time.delta * 200;
+
+  return {
+    curve: vec =>
+      points
+        .reduce((acc, { pos, dir }) => {
+          const component = vec
+            .copy()
+            .divide(dimensions)
+            .sub(pos)
+            .multiply(dir);
+          return acc.add(
+            component.setMagnitude(1 - component.getSquaredMagnitude())
+          );
+        }, Vector.zero(2))
+        .multiply(dimensionsNorm, vecSize),
+    color: vec => vec.getAngle() / (2 * Math.PI),
+  };
+};
+
 export const getWindFn: WindFunc = context => {
   const { paramConfig } = context;
   const curve = paramConfig.getVal("curve");
@@ -170,6 +205,9 @@ export const getWindFn: WindFunc = context => {
 
     case "Curved Stripes":
       return curvedStripes(context);
+
+    case "Attractor Repulsers":
+      return attractorRepulsers(context);
 
     default:
       return checkExhausted(curve);
