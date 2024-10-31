@@ -91,9 +91,9 @@ function animationFrame(context: AppContextWithState<typeof config, State>) {
         ctx.beginPath();
       }
 
-      ctx.moveTo(...particle.toArray());
+      ctx.moveTo(particle.x(), particle.y());
       particle.add(vel);
-      ctx.lineTo(...particle.toArray());
+      ctx.lineTo(particle.x(), particle.y());
 
       if (isMultiColor) ctx.stroke();
     }
