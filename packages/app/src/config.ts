@@ -1,27 +1,24 @@
 import {
-  colorConfig,
-  config,
-  configCollection,
-  numberConfig,
-  rangeConfig,
-  selectConfig,
+  collectionParser,
+  colorParser,
+  createParsers,
+  numberParser,
+  rangeParser,
+  selectParser,
 } from "@web-art/config-parser";
 
-export default config(
-  selectConfig({
-    id: "color-mode",
+export const config = createParsers({
+  "color-mode": selectParser({
     label: "Colour Mode",
     options: ["Hue Cycle", "Custom Gradient", "Black"],
     default: "Custom Gradient",
   }),
-  rangeConfig({
-    id: "speed",
+  speed: rangeParser({
     label: "Animation Speed",
     default: 0.5,
     attrs: { min: "0", max: "1", step: "0.01" },
   }),
-  numberConfig({
-    id: "num-particles",
+  "num-particles": numberParser({
     label: "Number of Particles",
     default: 10000,
     attrs: {
@@ -29,20 +26,17 @@ export default config(
       max: (1e15).toString(),
     },
   }),
-  colorConfig({
-    id: "background",
+  background: colorParser({
     label: "Background Colour",
-    default: "FFFFFF",
+    default: "000000",
   }),
-  rangeConfig({
-    id: "draw-opacity",
+  "draw-opacity": rangeParser({
     label: "Draw Opacity",
-    tooltip: "Affects how long the colour trails are",
+    title: "Affects how long the colour trails are",
     default: 13,
     attrs: { min: "0", max: "255" },
   }),
-  selectConfig({
-    id: "curve",
+  curve: selectParser({
     label: "Curve",
     default: "Sweeping Right",
     options: [
@@ -56,18 +50,12 @@ export default config(
       "Attractor Repulsers",
     ],
   }),
-  configCollection({
-    id: "color-map",
+  "color-map": collectionParser({
     label: "Colour Map",
     expandable: true,
     fields: [
-      colorConfig({
-        id: "color-map-color",
-        label: "Colour",
-        default: "FFFFFF",
-      }),
-      numberConfig({
-        id: "color-map-weight",
+      colorParser({ label: "Colour", default: "FFFFFF" }),
+      numberParser({
         label: "Weight",
         default: 1,
         attrs: { min: "0.1", step: "0.1" },
@@ -78,5 +66,5 @@ export default config(
       ["00FF00", 1],
       ["0000FF", 1],
     ],
-  })
-);
+  }),
+});

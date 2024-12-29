@@ -1,5 +1,5 @@
 import { Vector } from "@web-art/linear-algebra";
-import config from "./config";
+import { config } from "./config";
 import { AppContextWithState } from "./lib/types";
 
 export type State = { particles: Vector<2>[] };

@@ -11,7 +11,7 @@ const vortex: WindFunc = ({ canvas, time, paramConfig }) => {
   const steppedTime = 2 * timeSoFar - Math.floor(timeSoFar / 8);
 
   const multiplier =
-    ((paramConfig.getVal("speed") + 0.05) *
+    ((paramConfig.getValue("speed") + 0.05) *
       Math.min(canvas.width, canvas.height)) /
     800;
 
@@ -32,7 +32,7 @@ const vortex: WindFunc = ({ canvas, time, paramConfig }) => {
 
 const sweepingRight: WindFunc = ({ time, paramConfig, canvas }) => {
   const sizeVec = Vector.create(
-    500 * (paramConfig.getVal("speed") + 0.1) * time.delta,
+    500 * (paramConfig.getValue("speed") + 0.1) * time.delta,
     0
   );
   const divisor = (Math.min(canvas.width, canvas.height) * 1.2) ** 2 / 2;
@@ -48,7 +48,7 @@ const sweepingRight: WindFunc = ({ time, paramConfig, canvas }) => {
 };
 
 const zigZag: WindFunc = ({ time, canvas, paramConfig }) => {
-  const speed = paramConfig.getVal("speed") * time.delta * 300;
+  const speed = paramConfig.getValue("speed") * time.delta * 300;
 
   return {
     color: (vel, particle) =>
@@ -64,7 +64,7 @@ const zigZag: WindFunc = ({ time, canvas, paramConfig }) => {
 const magnet: WindFunc = ({ time, canvas, paramConfig }) => {
   const center = Vector.create(canvas.width / 2, canvas.height / 2);
   const sizeVec = Vector.create(
-    (paramConfig.getVal("speed") + 0.05) * time.delta * 200,
+    (paramConfig.getValue("speed") + 0.05) * time.delta * 200,
     0
   );
 
@@ -84,7 +84,7 @@ const swirls: WindFunc = ({ time, canvas, paramConfig }) => {
   const swirlsPerDim = dimensions.map(n => Math.ceil((2 * n) / swirlSize));
   const maxIndex = swirlsPerDim.x() * swirlsPerDim.y();
   const sizeVec = Vector.create(
-    (paramConfig.getVal("speed") + 0.05) * time.delta * 200,
+    (paramConfig.getValue("speed") + 0.05) * time.delta * 200,
     0
   );
 
@@ -109,7 +109,7 @@ const eyes: WindFunc = ({ time, canvas, paramConfig }) => {
   const center = Vector.create(canvas.width / 2, canvas.height / 2);
   const blendSize = 3;
   const blendStart = (blendSize - 1) / 2;
-  const vecSize = (paramConfig.getVal("speed") + 0.05) * time.delta * 200;
+  const vecSize = (paramConfig.getValue("speed") + 0.05) * time.delta * 200;
 
   return {
     color: (vel, particle) =>
@@ -135,7 +135,7 @@ const eyes: WindFunc = ({ time, canvas, paramConfig }) => {
 };
 
 const curvedStripes: WindFunc = ({ time, paramConfig }) => {
-  const vecSize = (paramConfig.getVal("speed") + 0.05) * time.delta * 200;
+  const vecSize = (paramConfig.getValue("speed") + 0.05) * time.delta * 200;
 
   return {
     color: (_, particle) =>
@@ -147,11 +147,6 @@ const curvedStripes: WindFunc = ({ time, paramConfig }) => {
   };
 };
 
-// const blobbyBois = new Array(2).fill(undefined).map(() => ({
-//   pos: Vector.randomNormalised(2).add(1).divide(2),
-//   dir: Math.sign(Math.random() - 0.5),
-// }));
-
 const points = new Array(4).fill(undefined).map(() => ({
   pos: Vector.create(Math.random(), Math.random()),
   dir: Math.sign(Math.random() - 0.25),
@@ -160,7 +155,7 @@ const points = new Array(4).fill(undefined).map(() => ({
 const attractorRepulsers: WindFunc = ({ time, canvas, paramConfig }) => {
   const dimensions = Vector.create(canvas.width, canvas.height);
   const dimensionsNorm = dimensions.getNorm();
-  const vecSize = (paramConfig.getVal("speed") + 0.05) * time.delta * 200;
+  const vecSize = (paramConfig.getValue("speed") + 0.05) * time.delta * 200;
 
   return {
     curve: vec =>
@@ -182,7 +177,7 @@ const attractorRepulsers: WindFunc = ({ time, canvas, paramConfig }) => {
 
 export const getWindFn: WindFunc = context => {
   const { paramConfig } = context;
-  const curve = paramConfig.getVal("curve");
+  const curve = paramConfig.getValue("curve");
 
   switch (curve) {
     case "Vortex":

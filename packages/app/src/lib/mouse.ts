@@ -1,12 +1,8 @@
-import { hasKey, isString } from "@web-art/core";
 import { Vector } from "@web-art/linear-algebra";
+import { isObjectOf, isString } from "deep-guards";
 
 function isMouseEvent(evt: unknown): evt is MouseEvent {
-  return hasKey(
-    evt,
-    "type",
-    (s): s is `mouse${string}` => isString(s) && s.startsWith("mouse")
-  );
+  return isObjectOf({ type: isString })(evt) && evt.type.startsWith("mouse");
 }
 
 type MouseCallback = (
@@ -19,6 +15,7 @@ export default class Mouse {
   private _clicked: boolean;
   private readonly _pos: Vector<2>;
   private readonly _relativePos: Vector<2>;
+
   private elementBounds: DOMRect;
   private downCallback?: MouseCallback;
   private moveCallback?: MouseCallback;

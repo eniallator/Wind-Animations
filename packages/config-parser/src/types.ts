@@ -1,109 +1,73 @@
-import { DeriveDefaults, DeriveStateType } from "./derive.js";
-
-export interface BaseConfig<I extends string> {
-  id: I;
-  tooltip?: string;
+export interface Config {
+  label?: string;
+  title?: string;
   attrs?: Record<string, string>;
 }
 
-export interface BaseInputConfig<I extends string, T> extends BaseConfig<I> {
-  label?: string;
+export interface ValueConfig<T> extends Config {
   default?: T;
 }
 
-export interface CheckboxConfig<I extends string>
-  extends BaseInputConfig<I, boolean> {
-  type: "Checkbox";
+export interface ContentParser {
+  type: "Content";
+  html: (id: string | null) => HTMLElement;
 }
 
-export interface NumberConfig<I extends string>
-  extends BaseInputConfig<I, number> {
-  type: "Number";
+export interface ValueParser<T> {
+  type: "Value";
+  html: (
+    id: string | null,
+    query: string | null,
+    shortUrl: boolean
+  ) => HTMLElement;
+  serialise: (shortUrl: boolean) => string | null;
+  updateValue: (el: HTMLElement, shortUrl: boolean) => void;
+  getValue: (el: HTMLElement) => T;
 }
 
-export interface RangeConfig<I extends string>
-  extends BaseInputConfig<I, number> {
-  type: "Range";
-}
+export type Parser<T> = ContentParser | ValueParser<T>;
 
-export interface ColorConfig<I extends string>
-  extends BaseInputConfig<I, string> {
-  type: "Color";
-}
-
-export interface TextConfig<I extends string>
-  extends BaseInputConfig<I, string> {
-  type: "Text";
-  area?: boolean;
-}
-
-export interface DatetimeConfig<I extends string>
-  extends BaseInputConfig<I, Date> {
-  type: "Datetime";
-}
-
-type ArrayItems<A extends ReadonlyArray<unknown>> =
-  A extends ReadonlyArray<infer I> ? I : never;
-
-export interface SelectConfig<
-  I extends string,
-  T extends string = string,
-  A extends readonly [T, ...T[]] = readonly [T, ...T[]],
-> extends BaseInputConfig<I, ArrayItems<A>> {
-  type: "Select";
-  options: A;
-}
-
-export interface FileConfig<I extends string>
-  extends BaseInputConfig<I, string> {
-  type: "File";
-  text?: string;
-}
-
-export interface ButtonConfig<I extends string> extends BaseConfig<I> {
-  type: "Button";
-  text?: string;
-}
-
-export type InputConfig<I extends string> =
-  | CheckboxConfig<I>
-  | FileConfig<I>
-  | NumberConfig<I>
-  | RangeConfig<I>
-  | ColorConfig<I>
-  | TextConfig<I>
-  | DatetimeConfig<I>
-  | SelectConfig<I>;
-
-export type ConfigCollectionFields = ReadonlyArray<InputConfig<string>>;
-
-export interface ConfigCollection<
-  I extends string,
-  F extends ConfigCollectionFields,
-> {
-  type: "Collection";
-  id: I;
+export type InitParser<P extends Parser<unknown>> = {
   label?: string;
-  expandable?: boolean;
-  fields: F;
-  default?: ReadonlyArray<DeriveDefaults<F>>;
+  title?: string;
+  methods: (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onChange: (value: any) => void,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getValue: () => any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    initial: any
+  ) => P;
+};
+
+export type ParserValue<P extends Parser<unknown>> =
+  P extends ValueParser<infer T> ? T : P extends ContentParser ? null : never;
+
+export type AnyStringObject = { [K in string]: unknown };
+
+export type AnyParserConfig = { [K in string]: Parser<unknown> };
+
+export type InitParserObject<O extends AnyStringObject> = {
+  [K in keyof O]: InitParser<Parser<O[K]>>;
+};
+
+export type ValueParserTuple<O extends readonly unknown[]> = {
+  [K in keyof O]: ValueParser<O[K]>;
+};
+
+export type InitValueParserTuple<O extends readonly unknown[]> = {
+  [K in keyof O]: InitParser<ValueParser<O[K]>>;
+};
+
+export type InitParserValues<R extends InitParserObject<AnyStringObject>> =
+  R extends InitParserObject<infer T> ? T : never;
+
+export interface StateItem<T> {
+  parser: Parser<T>;
+  value: T;
+  el: HTMLElement;
 }
 
-export type ConfigPart<
-  I extends string,
-  F extends ConfigCollectionFields = ConfigCollectionFields,
-> = InputConfig<I> | ButtonConfig<I> | ConfigCollection<I, F>;
-
-export type SerialisableConfig<I extends string> =
-  | InputConfig<I>
-  | ConfigCollection<I, ConfigCollectionFields>;
-
-export interface StateItem<C extends ConfigPart<string>> {
-  value: DeriveStateType<C>;
-  config: C;
-  clicked: boolean;
-}
-
-export type OnUpdate<C extends ConfigPart<string>> = (
-  newValue: DeriveStateType<C>
-) => void;
+export type State<R extends AnyStringObject> = {
+  [K in keyof R]: StateItem<R[K]>;
+};

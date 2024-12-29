@@ -1,4 +1,5 @@
-import { Guard } from "./guard.js";
+import { Guard } from "deep-guards";
+import { Monad } from "./monad.js";
 import { raise } from "./utils.js";
 
 export class Option<A> {
@@ -45,9 +46,7 @@ export class Option<A> {
   }
 
   tap(fn: (value: A) => void): this {
-    if (this.value != null) {
-      fn(this.value);
-    }
+    if (this.value != null) fn(this.value);
     return this;
   }
 
@@ -69,5 +68,9 @@ export class Option<A> {
 
   getOrElse<R>(orElse: () => R): A | R {
     return this.value ?? orElse();
+  }
+
+  toMonad(): Monad<A | null> {
+    return Monad.from(this.value ?? null);
   }
 }
