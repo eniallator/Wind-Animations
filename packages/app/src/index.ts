@@ -1,6 +1,6 @@
 import { Vector } from "@web-art/linear-algebra";
 import { calcColor } from "./color";
-import config from "./config";
+import { config } from "./config";
 import { AppContext, AppContextWithState, appMethods } from "./lib/types";
 import { State } from "./types";
 import { getWindFn } from "./velocity";
@@ -8,11 +8,11 @@ import { getWindFn } from "./velocity";
 const STILL_THRESHOLD = 1e-2;
 
 function init({ canvas, ctx, paramConfig }: AppContext<typeof config>): State {
-  ctx.fillStyle = `#${paramConfig.getVal("background")}`;
+  ctx.fillStyle = `#${paramConfig.getValue("background")}`;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   return {
-    particles: new Array(paramConfig.getVal("num-particles"))
+    particles: new Array(paramConfig.getValue("num-particles"))
       .fill(undefined)
       .map(() =>
         Vector.create(
@@ -45,19 +45,21 @@ function animationFrame(context: AppContextWithState<typeof config, State>) {
   const dimensions = Vector.create(canvas.width, canvas.height);
 
   const drawOpacity = paramConfig
-    .getVal("draw-opacity")
+    .getValue("draw-opacity")
     .toString(16)
     .padStart(2, "0");
-  ctx.fillStyle = `#${paramConfig.getVal("background")}${drawOpacity}`;
+  ctx.fillStyle = `#${paramConfig.getValue("background")}${drawOpacity}`;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  manageNumParticles(state.particles, paramConfig.getVal("num-particles"), () =>
-    dimensions.map(n => n * Math.random())
+  manageNumParticles(
+    state.particles,
+    paramConfig.getValue("num-particles"),
+    () => dimensions.map(n => n * Math.random())
   );
 
   const { curve, color } = getWindFn(context);
-  const colorMap = paramConfig.getVal("color-map");
-  const colorMode = paramConfig.getVal("color-mode");
+  const colorMap = paramConfig.getValue("color-map");
+  const colorMode = paramConfig.getValue("color-mode");
   const isMultiColor =
     color != null &&
     (colorMode === "Hue Cycle" ||

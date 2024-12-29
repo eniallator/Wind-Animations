@@ -1,3 +1,5 @@
+import { Option } from "./option.js";
+
 type UnpackTupledMonads<M extends readonly Monad<unknown>[]> = {
   [K in keyof M]: M[K] extends Monad<infer T> ? T : M[K];
 };
@@ -50,7 +52,7 @@ export class Monad<A> {
    * @param {function(A): void} fn Function to call
    * @returns {this} this
    */
-  tap(fn: (value: A) => void): this {
+  tap(fn: (value: A) => void): ThisType<A> {
     fn(this.value);
     return this;
   }
@@ -61,5 +63,9 @@ export class Monad<A> {
    */
   get(): A {
     return this.value;
+  }
+
+  toOption<B>(this: { get(): B | null | undefined }): Option<B> {
+    return Option.from(this.get());
   }
 }
