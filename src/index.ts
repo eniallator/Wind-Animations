@@ -2,7 +2,7 @@ import { createWeightedGradient } from "niall-utils";
 import { Vector } from "vectyped";
 
 import { appMethods } from "./lib/index.ts";
-import { getWindFn } from "./velocity.ts";
+import { windFuncs } from "./velocity.ts";
 
 import type { Config } from "./config.ts";
 import type { AppContext, StatefulAppContext } from "./lib/index.ts";
@@ -60,7 +60,7 @@ function animationFrame(context: StatefulAppContext<Config, State>) {
     dimensions.map(n => n * Math.random())
   );
 
-  const { curve, color } = getWindFn(context);
+  const { curve, color } = windFuncs[seriform.getValue("curve")](context);
   const colorMap = seriform.getValue("color-map");
   const colorMode = seriform.getValue("color-mode");
   const isMultiColor =

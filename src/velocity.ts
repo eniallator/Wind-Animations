@@ -1,6 +1,8 @@
+import { Monad, positiveMod, tuple } from "niall-utils";
 import { Vector } from "vectyped";
+
+import type { Config } from "./config.ts";
 import type { WindFunc } from "./types";
-import { checkExhausted, Monad, positiveMod, tuple } from "niall-utils";
 
 const GOLDEN_RATIO = (1 + Math.sqrt(5)) / 2;
 const TAU = 2 * Math.PI;
@@ -172,36 +174,36 @@ const attractorRepulsers: WindFunc = ({ time, canvas, seriform }) => {
   };
 };
 
-export const getWindFn: WindFunc = context => {
-  const { seriform } = context;
-  const curve = seriform.getValue("curve");
+const circleStripes: WindFunc = ({ time, canvas, seriform }) => {
+  const center = Vector.create(canvas.width / 2, canvas.height / 2);
+  const sizeVec = Vector.create(
+    (seriform.getValue("speed") + 0.05) * time.delta * 200,
+    0
+  );
+  const laneSize = center.getMin() / 5;
 
-  switch (curve) {
-    case "Vortex":
-      return vortex(context);
+  return {
+    color: vec => positiveMod(vec.getAngle() / TAU, 1),
+    curve: vec =>
+      Monad.from(vec.copy().sub(center))
+        .map(diff =>
+          sizeVec
+            .copy()
+            .setAngle(diff.getAngle() + Math.PI / 2)
+            .multiply(diff.getMagnitude() % (2 * laneSize) > laneSize ? 1 : -1)
+        )
+        .get(),
+  };
+};
 
-    case "Sweeping Right":
-      return sweepingRight(context);
-
-    case "Zig Zag":
-      return zigZag(context);
-
-    case "Magnet":
-      return magnet(context);
-
-    case "Swirls":
-      return swirls(context);
-
-    case "Eyes":
-      return eyes(context);
-
-    case "Curved Stripes":
-      return curvedStripes(context);
-
-    case "Attractor Repulsers":
-      return attractorRepulsers(context);
-
-    default:
-      return checkExhausted(curve);
-  }
+export const windFuncs: Record<Config["curve"], WindFunc> = {
+  "Sweeping Right": vortex,
+  Vortex: sweepingRight,
+  "Zig Zag": zigZag,
+  Magnet: magnet,
+  Swirls: swirls,
+  Eyes: eyes,
+  "Curved Stripes": curvedStripes,
+  "Attractor Repulsers": attractorRepulsers,
+  "Circle Stripes": circleStripes,
 };

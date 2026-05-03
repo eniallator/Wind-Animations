@@ -51,6 +51,7 @@ export const config = createParsers({
       "Eyes",
       "Curved Stripes",
       "Attractor Repulsers",
+      "Circle Stripes",
     ],
   }),
   "color-map": tableParser({
