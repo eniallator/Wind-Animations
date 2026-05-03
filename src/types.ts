@@ -4,10 +4,7 @@ import type { StatefulAppContext } from "./lib/types.ts";
 
 export type State = { particles: Vector<2>[] };
 
-export type CurveFunc = (vec: Vector<2>) => Vector<2>;
-export type ColorFunc = (vel: Vector<2>, particle: Vector<2>) => number;
-
 export type WindFunc = (context: StatefulAppContext<Config, State>) => {
-  curve: CurveFunc;
-  color?: ColorFunc;
+  curve: (vec: Vector<2>) => Vector<2>;
+  color?: (vel: Vector<2>, particle: Vector<2>) => number;
 };

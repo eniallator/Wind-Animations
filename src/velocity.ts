@@ -1,4 +1,4 @@
-import { Monad, positiveMod, tuple } from "niall-utils";
+import { positiveMod } from "niall-utils";
 import { Vector } from "vectyped";
 
 import type { Config } from "./config.ts";
@@ -20,16 +20,15 @@ const vortex: WindFunc = ({ canvas, time, seriform }) => {
 
   return {
     color: vel => positiveMod(vel.getAngle() / TAU, 1),
-    curve: vec =>
-      Monad.from(vec.copy().sub(center).divide(center))
-        .map(diff => tuple(diff.getMagnitude(), diff.getAngle() - steppedTime))
-        .map(([mag, c]) =>
-          Vector.create(
-            GOLDEN_RATIO * Math.cos(mag / (2 * time.delta) + c) * multiplier,
-            Math.sin(mag / (2 * GOLDEN_RATIO * time.delta) + c) * multiplier
-          )
-        )
-        .get(),
+    curve: vec => {
+      const diff = vec.copy().sub(center).divide(center);
+      const mag = diff.getMagnitude();
+      const c = diff.getAngle() - steppedTime;
+      return Vector.create(
+        GOLDEN_RATIO * Math.cos(mag / (2 * time.delta) + c) * multiplier,
+        Math.sin(mag / (2 * GOLDEN_RATIO * time.delta) + c) * multiplier
+      );
+    },
   };
 };
 
@@ -40,13 +39,14 @@ const sweepingRight: WindFunc = ({ time, seriform, canvas }) => {
   );
   const divisor = (Math.min(canvas.width, canvas.height) * 1.2) ** 2 / 2;
   const offset = ((time.now - time.start) / 60) * TAU;
+
   return {
     color: (vel, particle) =>
       positiveMod(particle.x() / canvas.width + vel.getAngle() / TAU, 1),
-    curve: vec =>
-      sizeVec
-        .copy()
-        .setAngle(Math.cos(vec.getSquaredMagnitude() / divisor + offset)),
+    curve: vec => {
+      const angle = Math.cos(vec.getSquaredMagnitude() / divisor + offset);
+      return sizeVec.copy().setAngle(angle);
+    },
   };
 };
 
@@ -75,9 +75,7 @@ const magnet: WindFunc = ({ time, canvas, seriform }) => {
     color: (vel, particle) =>
       positiveMod(particle.y() / canvas.height + vel.getAngle() / TAU, 1),
     curve: vec =>
-      Monad.from(vec.copy().sub(center).getAngle() + Math.PI / 2)
-        .map(angle => sizeVec.copy().setAngle(2 * angle))
-        .get(),
+      sizeVec.copy().setAngle(2 * vec.copy().sub(center).getAngle()),
   };
 };
 
@@ -92,19 +90,16 @@ const swirls: WindFunc = ({ time, canvas, seriform }) => {
   );
 
   return {
-    color: (_vel, particle) =>
-      Monad.from(particle.map(n => Math.floor(n / swirlSize)))
-        .map(grid => (grid.x() + grid.y() * swirlsPerDim.x()) / maxIndex)
-        .get(),
-    curve: vec =>
-      sizeVec
-        .copy()
-        .setAngle(
-          vec.map(n => (n % swirlSize) - swirlSize / 2).getAngle() +
-            (vec.map(n => Math.floor(n / swirlSize)).sum() % 2 === 1
-              ? Math.PI / 2
-              : -Math.PI / 2)
-        ),
+    color: (_vel, particle) => {
+      const grid = particle.map(n => Math.floor(n / swirlSize));
+      return (grid.x() + grid.y() * swirlsPerDim.x()) / maxIndex;
+    },
+    curve: vec => {
+      const gridDiff = vec.map(n => (n % swirlSize) - swirlSize / 2).getAngle();
+      const cellDist = vec.map(n => Math.floor(n / swirlSize)).sum();
+      const dir = cellDist % 2 === 1 ? Math.PI / 2 : -Math.PI / 2;
+      return sizeVec.copy().setAngle(gridDiff + dir);
+    },
   };
 };
 
@@ -121,18 +116,17 @@ const eyes: WindFunc = ({ time, canvas, seriform }) => {
           TAU,
         1
       ),
-    curve: vec =>
-      Vector.create(vec.x() < center.x() ? 1 : -1, -1)
-        .lerp(
-          Math.max(
-            Math.min((blendSize * vec.y()) / (2 * center.y()) - blendStart, 1),
-            0
-          ),
-          Vector.create(vec.x() < center.x() ? -1 : 1, -1)
-        )
+    curve: vec => {
+      const whenRight = vec.x() < center.x() ? 1 : -1;
+      const blendStrength =
+        (blendSize * vec.y()) / (2 * center.y()) - blendStart;
+      const clampedStrength = Math.max(Math.min(blendStrength, 1), 0);
+      return Vector.create(whenRight, -1)
+        .lerp(clampedStrength, Vector.create(-whenRight, -1))
         .normalise()
         .lerp((1 - Math.abs(vec.x() / center.x() - 1)) ** 2, Vector.DOWN)
-        .multiply(vecSize),
+        .multiply(vecSize);
+    },
   };
 };
 
@@ -161,16 +155,15 @@ const attractorRepulsers: WindFunc = ({ time, canvas, seriform }) => {
 
   return {
     color: vec => positiveMod(vec.getAngle() / TAU, 1),
-    curve: vec => {
-      return points
+    curve: vec =>
+      points
         .reduce((acc, { pos, dir }) => {
           const strength = vec.copy().divide(dimensions).sub(pos).multiply(dir);
           return acc.add(
             strength.setMagnitude(1 - strength.getSquaredMagnitude())
           );
         }, Vector.zero(2))
-        .multiply(dimensionsNorm, vecSize);
-    },
+        .multiply(dimensionsNorm, vecSize),
   };
 };
 
@@ -180,25 +173,22 @@ const circleStripes: WindFunc = ({ time, canvas, seriform }) => {
     (seriform.getValue("speed") + 0.05) * time.delta * 200,
     0
   );
-  const laneSize = center.getMin() / 5;
+  const stripeSize = center.getMin() / 5;
 
   return {
     color: vec => positiveMod(vec.getAngle() / TAU, 1),
-    curve: vec =>
-      Monad.from(vec.copy().sub(center))
-        .map(diff =>
-          sizeVec
-            .copy()
-            .setAngle(diff.getAngle() + Math.PI / 2)
-            .multiply(diff.getMagnitude() % (2 * laneSize) > laneSize ? 1 : -1)
-        )
-        .get(),
+    curve: vec => {
+      const diff = vec.copy().sub(center);
+      const angle = diff.getAngle() + Math.PI / 2;
+      const size = diff.getMagnitude() % (2 * stripeSize) > stripeSize ? 1 : -1;
+      return sizeVec.copy().setAngle(angle).multiply(size);
+    },
   };
 };
 
 export const windFuncs: Record<Config["curve"], WindFunc> = {
-  "Sweeping Right": vortex,
-  Vortex: sweepingRight,
+  "Sweeping Right": sweepingRight,
+  Vortex: vortex,
   "Zig Zag": zigZag,
   Magnet: magnet,
   Swirls: swirls,
